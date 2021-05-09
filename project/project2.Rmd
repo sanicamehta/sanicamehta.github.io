@@ -1,0 +1,240 @@
+---
+title: "Project 2"
+author: "Me"
+date: "4/29/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+hook_output = knit_hooks$get('output')
+knit_hooks$set(output = function(x, options) {
+  # this hook is used only when the linewidth option is not NULL
+  if (!is.null(n <- options$linewidth)) {
+    x = knitr:::split_lines(x)
+    # any lines wider than n should be wrapped
+    if (any(nchar(x) > n)) x = strwrap(x, width = n)
+    x = paste(x, collapse = '\n')
+  }
+  hook_output(x, options)
+})
+
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE,fig.align="center",warning=FALSE,message=FALSE,fig.width=8, fig.height=5, linewidth=60)
+options(tibble.width = 100,width = 100)
+library(tidyverse)
+class_diag<-function(probs,truth){
+  
+  tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),truth)
+  acc=sum(diag(tab))/sum(tab)
+  sens=tab[2,2]/colSums(tab)[2]
+  spec=tab[1,1]/colSums(tab)[1]
+  ppv=tab[2,2]/rowSums(tab)[2]
+
+  if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1
+  
+  #CALCULATE EXACT AUC
+  ord<-order(probs, decreasing=TRUE)
+  probs <- probs[ord]; truth <- truth[ord]
+  
+  TPR=cumsum(truth)/max(1,sum(truth)) 
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  
+  dup<-c(probs[-1]>=probs[-length(probs)], FALSE)
+  TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+  
+  n <- length(TPR)
+  auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+  data.frame(acc,sens,spec,ppv,auc)
+}
+
+library(plotROC)
+library(glmnet)
+library(dplyr)
+library(lmtest)
+library(sandwich)
+select<-dplyr::select
+melanoma<-boot::melanoma
+```
+
+#Project 2
+##Sanica Mehta, sgm2384
+
+*The data set that I am using is survival of melanoma patients after tumor excision from the boot library. Variables include time, which is the survival time in days after surgery. Status is the status of the patients at the end of the study, 1 being they passed away from melanoma, 2 being that they were still alive, and 3 being that they passed away due to reasons unrelated to melanoma. The sex of the patients are dummy coded: 1 being male and 0 being female. the variable ulcer is also dummy coded for whether the tumor was ulcerated or not. Thickness is the thickness of the tumor in millimeters. Other variables include the patients age and the year of the operation.*
+
+#MANOVA, ANOVA, and Post-Hoc t-Tests
+```{r cars}
+library(boot)
+head(melanoma)
+man1 <- manova(cbind(time,status,sex,age,year,thickness)~ulcer,data=melanoma)
+summary(man1)
+summary.aov(man1) #6 anovas
+pairwise.t.test(melanoma$time,melanoma$ulcer, p.adj="none")
+pairwise.t.test(melanoma$status,melanoma$ulcer, p.adj="none")
+pairwise.t.test(melanoma$sex,melanoma$ulcer, p.adj="none")
+pairwise.t.test(melanoma$thickness,melanoma$ulcer, p.adj="none") #4 t-tests
+1-(.95^11)
+.05/11
+```
+
+*I have done 11 hypothesis tests which means that the probability that I have made a type I error is 43.120% and the bonferroni adjusted significance level is 0.0045. There are significant differences in survival time, status, and thickness between patients who had ulcerated and non-ulcerated tumors (p-value<0.0045). The MANOVA assumptions are random samples/independent observations, multivariate normality of dependent variables, homogeneity of within-group covariance matrices, linear relationships among dependent variables, and no multicollinearity which are not likely to have been met by the data.*
+
+#Randomization Test
+```{R}
+summary(aov(time~ulcer,data=melanoma))
+obs_F<-15.3
+Fs <- replicate(5000,{ 
+  new <- melanoma%>%mutate(time=sample(time)) 
+   
+  SSW <- new %>% group_by(ulcer) %>% summarize(SSW=sum((time-mean(time))^2)) %>% summarize(sum(SSW)) %>% pull 
+  SSB <- new %>% mutate(mean=mean(time)) %>% group_by(ulcer) %>% mutate(groupmean=mean(time)) %>%
+    summarize(SSB=sum((mean-groupmean)^2)) %>% summarize(sum(SSB))%>%pull 
+  (SSB/1)/(SSW/203) 
+})
+hist(Fs, prob=T); abline(v = obs_F, col="red",add=T)
+mean(Fs>obs_F) 
+```
+
+*The null hypothesis of the randomization test is that the ulcerated and non-ulcerated tumor patients mean survival time are equal and the alternative hypothesis is that they are not equal. The p-value is effectively zero which means none of the 5000 F statistics generated under the null hypothesis were bigger than the actual F statistic, reject the null hypothesis and conclude that the ulcerated and non-ulcerated tumor patients differ.*
+
+#Linear Regression Model
+```{R}
+melanoma$age_c=melanoma$age-mean(melanoma$age,na.rm=T)
+fit <- lm(time ~ age_c * ulcer, data=melanoma)
+summary(fit)
+melanoma$ulcer<-factor(melanoma$ulcer,levels=c("1","0"))
+ggplot(melanoma, aes(age,time, color=ulcer))+geom_smooth(method="lm", se=F, fullrange=T)+geom_point()+
+  geom_vline(xintercept=0,lty=2)+geom_vline(xintercept = mean(melanoma$age))
+
+#linearity,homoskedsaticity
+resids<-fit$residuals
+fitvals<-fit$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0, color='red') 
+
+#normality
+ggplot()+geom_histogram(aes(resids), bins=20)
+ggplot()+geom_qq(aes(sample=resids))+geom_qq_line(aes(sample=resids))
+ks.test(resids, "pnorm", mean=0, sd(resids))
+shapiro.test(resids)
+
+coeftest(fit, vcov=vcovHC(fit))
+```
+
+*The predicted survival time when a patient is at the 52.463 age and has an ulcerated tumor is 2389.518 days. For every one-unit increase in age, survival time decreases by 13.721 days. Patients with ulcerated tumors and an average age have a predicted survival time that is 516.542 days lower than patients with non-ulcerated tumors and an average age. The slope of age on survival time for ulcerated tumor patients is 9.557 smaller than for non-ulcerated tumor patients.*
+
+*My model explains 14.81% of the variation in the outcome. The assumption of homoskedsaticity was violated, normality an linearity is okay.*
+
+*There were no changes to significance after using robust standard errors. Age is significantly associated with survival time and there is a significant difference between the survival time of ulcerated and non-ulcerated patients with an average age. The slope of age on survival time for non-ulcerated tumor patients is not significant.*
+
+#Linear Regression Rerun with Computing Bootstrapped Standard Errors 
+```{R}
+set.seed(348)
+samp_distn<-replicate(5000, {
+  boot_dat<-melanoma[sample(nrow(melanoma),replace=TRUE),]
+  fit<-lm(time ~ age_c * ulcer, data=boot_dat) 
+  coef(fit)
+})
+samp_distn %>% t %>% as.data.frame %>% summarise_all(sd) 
+
+resids<-fit$residuals
+fitted<-fit$fitted.values
+  
+ resid_resamp<-replicate(5000,{
+    new_resids<-sample(resids,replace=TRUE)
+    newdat<-melanoma
+    newdat$new_y<-fitted+new_resids
+    fit<-lm(new_y ~ age_c * ulcer, data = newdat)
+    coef(fit)
+})
+resid_resamp%>%t%>%as.data.frame%>%summarize_all(sd)
+```
+
+*The bootstrapped standard errors are bigger than the original standard errors, however they are slightly smaller than the robust standard errors. The p-values and their significance are unchanged from the original and robust.*
+
+#Logistic Regression Model with Two Explanatory Variables
+```{R}
+melanoma<-boot::melanoma
+fit1 <- glm(ulcer~age+thickness, data=melanoma, family="binomial")
+summary(fit1)
+exp(coeftest(fit1))
+prob<-predict(fit1, type="response")
+class_diag(prob,melanoma$ulcer)
+
+#confusion matrix
+table(predict=as.numeric(prob>.5), truth=melanoma$ulcer) %>% addmargins 
+
+melanoma$logit<-predict(fit1,type="link")
+melanoma %>% mutate(outcome=ifelse(ulcer=="1", "ulcer", "no ulcer"))%>%
+  ggplot()+geom_density(aes(logit,color=outcome,fill=outcome), alpha=.4)+
+  theme(legend.position=c(.85,.85))+geom_vline(xintercept=0)+xlab("logit (log-odds)")+
+  geom_rug(aes(logit,color=outcome))+
+  geom_text(x=-5,y=.07,label="TN = 431")+
+  geom_text(x=-1.75,y=.008,label="FN = 19")+
+  geom_text(x=1,y=.006,label="FP = 13")+
+  geom_text(x=5,y=.04,label="TP = 220")
+
+
+library(pROC)
+ROCplot<-plot.roc(melanoma$ulcer~prob)
+auc(ROCplot)
+```
+
+*The predicted odds of tumor ulceration for someone who is zero years old and has zero clump thickness is 5.519. Going up in age by one year multiplies the odds of ulceration by a factor of 0.995. Going up in tumor thickness by 1 mm multiplies the odds of ulceration by a factor of 0.637.*
+
+*The confusion matrix shows that the number of true positives that the model predicted was not that high, while the number of true negatives was very high This is solidified by the ROC curve because it vaguely resembles a right angle. The AUC is the same as calculated by the 'class_diags' function which is a good AUC.*
+
+*The accuracy of my model is fair and the sensitivity is poor, while the specificity, precision, and AUC are all pretty good.*
+
+#Logistic Regression Model with All Variables
+```{R}
+melanoma1<-melanoma %>% select(1:7)
+fit2 <- glm(ulcer~., data=melanoma1, family="binomial")
+prob1<-predict(fit2, type="response")
+class_diag(prob1,melanoma1$ulcer)
+
+
+set.seed(1234)
+k=10
+data<-melanoma1[sample(nrow(melanoma1)),] #randomly order rows
+folds<-cut(seq(1:nrow(melanoma1)),breaks=k,labels=F) #create folds
+diags<-NULL
+for(i in 1:k){## Create training and test sets  
+  train<-data[folds!=i,]   
+  test<-data[folds==i,]  
+  truth<-test$ulcer ## Truth labels for fold i
+  ## Train model on training set (all but fold i)  
+  fit<-glm(ulcer~.,data=train,family="binomial")
+  ## Test model on test set (fold i)   
+  probs<-predict(fit,newdata = test,type="response")
+  ## Get diagnostics for fold i  
+  diags<-rbind(diags,class_diag(probs,truth))}
+summarize_all(diags,mean)
+
+set.seed(1234)
+x<-model.matrix(ulcer~.,data=melanoma1)[,-1]
+y<-as.matrix(melanoma1$ulcer)
+head(x)
+
+cv<-cv.glmnet(x,y, family="binomial")
+lasso<-glmnet(x,y,family="binomial",lambda=cv$lambda.1se)
+coef(lasso) 
+
+set.seed(1234)
+k=10
+data<-melanoma1[sample(nrow(melanoma1)),] #randomly order rows
+folds<-cut(seq(1:nrow(melanoma1)),breaks=k,labels=F) #create folds
+diags<-NULL
+for(i in 1:k){## Create training and test sets  
+  train<-data[folds!=i,]   
+  test<-data[folds==i,]  
+  truth<-test$ulcer ## Truth labels for fold i
+  ## Train model on training set (all but fold i)  
+  fit<-glm(ulcer~status+time+thickness,data=train,family="binomial")
+  ## Test model on test set (fold i)   
+  probs<-predict(fit,newdata = test,type="response")
+  ## Get diagnostics for fold i  
+  diags<-rbind(diags,class_diag(probs,truth))}
+summarize_all(diags,mean)
+```
+
+*The in-sample accuracy, specificity, precision, and AUC of the model is pretty good, however the sensitivity is not which means that the proportion of non-ulcerated patients that were correctly classified was small. The out-of-sample accuracy, specificity, precision, and AUC were all lower than the in-sample classification diagnostics because the model was fitted to the original data. However, the AUC was still pretty good. Interestingly, the sensitivity was relatively similar. The variables that are retained after lasso are status, time, and thickness. The out-of-sample AUC using the lasso variables is slightly higher than the out-of-sample AUC using all variables, but still lower than the in-sample AUC which is expected.*

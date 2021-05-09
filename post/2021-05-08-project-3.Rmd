@@ -1,0 +1,17 @@
+---
+title: Project 3
+author: Sanica Mehta
+date: '2021-05-08'
+slug: project-3
+categories: []
+tags: []
+description: ''
+---
+
+[Link to project 1](/project/project1/)
+
+```{R}
+
+```
+![](/post/2021-05-08-project-3_files/11866326_1034007186612163_5455387299129461754_n.jpg)
+

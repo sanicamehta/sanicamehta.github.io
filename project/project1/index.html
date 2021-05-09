@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Sanica Mehta" />
+    
+    <link rel="shortcut icon" type="image/x-icon" href="../../img/favicon.ico">
+    <title>Project 1</title>
+    <meta name="generator" content="Hugo 0.83.1" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="../../css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="../../"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="../../post/">BLOG</a></li>
+        
+        <li><a href="../../projects/">PROJECTS</a></li>
+        
+        <li><a href="../../resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="../../project/project1/">Project 1</a></strong>
+          </h3>
+        </div>
+ 
+<div class="blog-title">
+          <h4>
+         January 1, 0001 
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+
+
+<div id="r-markdown" class="section level2">
+<h2>R Markdown</h2>
+<p>This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <a href="http://rmarkdown.rstudio.com" class="uri">http://rmarkdown.rstudio.com</a>.</p>
+<p>When you click the <strong>Knit</strong> button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:</p>
+<p>Note that the <code>echo = FALSE</code> parameter was added to the code chunk to prevent printing of the R code that generated the plot.</p>
+<p><em>My first data set my phone screen screen time that I collected my Apple iphone which is a feature you can turn on and look at your data per day in the Settings app. It contains the amount of time I spent on apps with different categories. My second data set is my Netflix watching history, which I downloaded and added the episode or movie length that corresponded to each episode or movie and removed the titles. I wanted to explore how much time I really spent in front of a screen because I could feel myself spending more time when it was depressing, cold or rainy, outside and because of the continual stay at home orders. So, I expect the overall times to increase when it is either rainy or cold.</em></p>
+<pre class="r"><code>library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(cluster)
+Screen_Time_Data &lt;- read.csv(&quot;Screen Time Data.csv&quot;)
+NetflixTime &lt;- read.csv(&quot;NetflixTime.csv&quot;)
+newdat &lt;- Screen_Time_Data %&gt;% full_join(NetflixTime)
+head(newdat)</code></pre>
+<pre><code>##      Date High.Temp Rain..Y.N. Social Entertainment Shopping.and.Food Travel
+## 1  2/7/21        68         N      93            49                15      0
+## 2  2/8/21        59         N     107            15                 6      0
+## 3  2/9/21        60         N     160             6                23      0
+## 4 2/10/21        61         N      86            36                 0      0
+## 5 2/11/21        59         N     252             0                 0      0
+## 6 2/12/21        62         Y     223             0                38      0
+##   Creativity Productivity.Finance Netflix
+## 1         13                    0       0
+## 2          2                    0     118
+## 3          7                    0      85
+## 4         34                    0     131
+## 5         42                    0       0
+## 6         58                    6     175</code></pre>
+<p><em>I full joined the Netflix viewing data to the screen time data because both data sets had an entry for each date. No cases were dropped.</em></p>
+<pre class="r"><code>newdat &lt;- newdat %&gt;% mutate(tot_phone_time = Social + Entertainment + 
+    Shopping.and.Food + Travel + Creativity + Productivity.Finance)
+newdat &lt;- newdat %&gt;% mutate(totscreen = tot_phone_time + Netflix)</code></pre>
+<p><em>A new variable that calculates the total time spent on my phone and the total time spent on a screen.</em></p>
+<pre class="r"><code>newdat &lt;- newdat %&gt;% mutate(Rain = Rain..Y.N.) %&gt;% select(-3)
+newdat &lt;- newdat %&gt;% mutate(Temp = High.Temp) %&gt;% select(-2)</code></pre>
+<p><em>Renaming the variables “High Temp” and “Rain (Y/N)”to “Temp” and “Rain” respectively, because it will be easier to work with.</em></p>
+<pre class="r"><code>tidydata &lt;- newdat %&gt;% pivot_longer(c(&quot;Social&quot;, &quot;Entertainment&quot;, 
+    &quot;Shopping.and.Food&quot;, &quot;Travel&quot;, &quot;Creativity&quot;, &quot;Productivity.Finance&quot;, 
+    &quot;Netflix&quot;), names_to = &quot;Consumption_Type&quot;, values_to = &quot;Time&quot;) %&gt;% 
+    select(-2, -3)</code></pre>
+<p><em>Tidied the data set by pivoting longer so that each activity on my phone and Netflix was now in a row under the label “Consumption_Type” and a new column that had the time spent on each activity.</em></p>
+<pre class="r"><code>tidydata %&gt;% filter(Time == 0) %&gt;% group_by(Consumption_Type) %&gt;% 
+    summarise(n = n()) %&gt;% arrange(desc(n))</code></pre>
+<pre><code>## # A tibble: 6 x 2
+##   Consumption_Type         n
+##   &lt;chr&gt;                &lt;int&gt;
+## 1 Travel                  49
+## 2 Productivity.Finance    36
+## 3 Netflix                 31
+## 4 Creativity              24
+## 5 Shopping.and.Food       24
+## 6 Entertainment           16</code></pre>
+<p><em>Travel apps had the most zeros indicating that they were were used the least.</em></p>
+<pre class="r"><code>tidydata %&gt;% filter(Time &gt; 0) %&gt;% group_by(Consumption_Type) %&gt;% 
+    summarise(n = n()) %&gt;% arrange(desc(n))</code></pre>
+<pre><code>## # A tibble: 7 x 2
+##   Consumption_Type         n
+##   &lt;chr&gt;                &lt;int&gt;
+## 1 Social                  50
+## 2 Entertainment           34
+## 3 Creativity              26
+## 4 Shopping.and.Food       26
+## 5 Netflix                 19
+## 6 Productivity.Finance    14
+## 7 Travel                   1</code></pre>
+<p><em>Social apps were used the most, all 50 observations were nonzero.</em></p>
+<pre class="r"><code>summary(tidydata$Time)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##    0.00    0.00    0.00   35.25   44.00  307.00</code></pre>
+<pre class="r"><code>summary(tidydata$Temp)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##   55.00   60.00   62.00   63.46   66.00   84.00</code></pre>
+<pre class="r"><code>tidydata %&gt;% mutate(day_condition = ifelse(Temp &gt; 65 &amp; Rain == 
+    &quot;N&quot;, &quot;good&quot;, &quot;bad&quot;)) %&gt;% group_by(day_condition) %&gt;% summarize(mean(Time))</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##   day_condition `mean(Time)`
+##   &lt;chr&gt;                &lt;dbl&gt;
+## 1 bad                   35.3</code></pre>
+<pre class="r"><code>tidydata %&gt;% group_by(Consumption_Type) %&gt;% summarise(mean_time = mean(Time)) %&gt;% 
+    arrange(desc(mean_time))</code></pre>
+<pre><code>## # A tibble: 7 x 2
+##   Consumption_Type     mean_time
+##   &lt;chr&gt;                    &lt;dbl&gt;
+## 1 Social                  152.  
+## 2 Netflix                  43.5 
+## 3 Entertainment            23.1 
+## 4 Creativity               15.2 
+## 5 Shopping.and.Food         9.24
+## 6 Productivity.Finance      3.2 
+## 7 Travel                    0.46</code></pre>
+<pre class="r"><code>tidydata %&gt;% filter(Time &gt; median(Time)) %&gt;% summarize(mean(Temp))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   `mean(Temp)`
+##          &lt;dbl&gt;
+## 1         63.5</code></pre>
+<pre class="r"><code>tidydata %&gt;% filter(Time &lt;= median(Time)) %&gt;% summarize(mean(Temp))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   `mean(Temp)`
+##          &lt;dbl&gt;
+## 1         63.4</code></pre>
+<pre class="r"><code>tidydata %&gt;% filter(Temp &lt; median(Temp)) %&gt;% summarize(mean(Time))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   `mean(Time)`
+##          &lt;dbl&gt;
+## 1         39.2</code></pre>
+<pre class="r"><code>tidydata %&gt;% filter(Temp &gt; median(Temp)) %&gt;% summarize(mean(Time))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   `mean(Time)`
+##          &lt;dbl&gt;
+## 1         31.5</code></pre>
+<pre class="r"><code>tidydata %&gt;% group_by(Rain, Consumption_Type) %&gt;% summarize(mean_time = mean(Time, 
+    na.rm = T), sd_time = sd(Time, na.rm = T), n = n(), se_time = sd_time/sqrt(n))</code></pre>
+<pre><code>## # A tibble: 14 x 6
+## # Groups:   Rain [2]
+##    Rain  Consumption_Type     mean_time sd_time     n se_time
+##    &lt;fct&gt; &lt;chr&gt;                    &lt;dbl&gt;   &lt;dbl&gt; &lt;int&gt;   &lt;dbl&gt;
+##  1 &quot;N &quot;  Creativity              12.4     17.5     38   2.83 
+##  2 &quot;N &quot;  Entertainment           23.3     23.1     38   3.74 
+##  3 &quot;N &quot;  Netflix                 35.6     67.4     38  10.9  
+##  4 &quot;N &quot;  Productivity.Finance     3.61     7.12    38   1.15 
+##  5 &quot;N &quot;  Shopping.and.Food       10.3     11.9     38   1.93 
+##  6 &quot;N &quot;  Social                 152.      53.2     38   8.63 
+##  7 &quot;N &quot;  Travel                   0.605    3.73    38   0.605
+##  8 &quot;Y &quot;  Creativity              24.2     22.4     12   6.47 
+##  9 &quot;Y &quot;  Entertainment           22.4     20.4     12   5.88 
+## 10 &quot;Y &quot;  Netflix                 68.6     87.0     12  25.1  
+## 11 &quot;Y &quot;  Productivity.Finance     1.92     4.01    12   1.16 
+## 12 &quot;Y &quot;  Shopping.and.Food        6       11.4     12   3.29 
+## 13 &quot;Y &quot;  Social                 154.      60.8     12  17.5  
+## 14 &quot;Y &quot;  Travel                   0        0       12   0</code></pre>
+<p><em>The minimum, first quartile, median, mean, third quartile, and maximum value for the time spent was 0, 0, 0, 35.25, 44, and 307 respectively. The minimum, first quartile, median, mean, third quartile, and maximum value for temperature was 55, 60, 62, 63.46, 66, and 84 respectively. On days that where the day condition was “bad,” below 65 degrees and/or rainy, the mean time spent in front of a screen was much larger than on the “good” condition days, above 65 degrees and non-rainy. The consumption type I spent the most time on, on average, was Social (152 mins) and the consumption I spent the least time on, on average, was Travel (0.5 mins). The average temperature when I spent more time in front of a screen than the median was the same as when I spent less time in front of a screen. However, when the temperature was above the median temperature, I spent more time in front of a screen than when the temperature was below the median temperature.</em></p>
+</div>
+<div id="correlation-heatmap" class="section level1">
+<h1>Correlation Heatmap</h1>
+<pre class="r"><code>cormat &lt;- newdat %&gt;% select_if(is.numeric) %&gt;% cor(use = &quot;pair&quot;)
+tidycor &lt;- cormat %&gt;% as.data.frame %&gt;% rownames_to_column(&quot;var1&quot;) %&gt;% 
+    pivot_longer(-1, names_to = &quot;var2&quot;, values_to = &quot;correlation&quot;)
+tidycor %&gt;% ggplot(aes(var1, var2, fill = correlation)) + geom_tile() + 
+    scale_fill_gradient2(low = &quot;red&quot;, mid = &quot;white&quot;, high = &quot;blue&quot;) + 
+    geom_text(aes(label = round(correlation, 2)), color = &quot;black&quot;, 
+        size = 2) + theme(axis.text.x = element_text(angle = 90, 
+    hjust = 1)) + coord_fixed() + xlab(&quot;&quot;) + ylab(&quot;&quot;) + labs(title = &quot;Correlation Between Variables&quot;)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" />
+<em>The Correlation heat map between variables shows that the highest positive correlation between the total time I spent on my phone and the amount of time I was on Social Media, indicating that the amount I was on social media attributed to the most time on my phone. Additionally, Netflix was highly positively correlated to my total screen time. The highest negative correlation was between the variables Social and Entertainment, which is expected because they would compete for my attention. For example, I would not be able to scroll on Instagram while simultaneously watching Youtube.</em></p>
+</div>
+<div id="plot-2" class="section level1">
+<h1>Plot 2</h1>
+<pre class="r"><code>tidydata %&gt;% mutate(day_condition = ifelse(Temp &gt; 65 &amp; Rain == 
+    &quot;N&quot;, &quot;good&quot;, &quot;bad&quot;)) %&gt;% ggplot(aes(Time, Temp)) + geom_point(stat = &quot;summary&quot;, 
+    fun = mean, aes(group = day_condition, color = day_condition)) + 
+    labs(title = &quot;Mean Consumption Time by Temperature&quot;, x = &quot;Time (mins)&quot;, 
+        y = &quot;Degrees (Fº)&quot;) + facet_wrap(~Consumption_Type) + 
+    scale_x_continuous(breaks = seq(0, 350, 50)) + theme(legend.position = &quot;bottom&quot;)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" />
+<em>Based on the graphs, the consumption types that were most affected by the day condition were Netflix and Social. Time spent on each platform was much higher on days with “bad” conditions, under 65 degrees and/or rainy. This was expected, as much of the time when it is gloomy or cold I stay inside and tend to mindlessly scroll. Creativity, Travel, Shopping and Food, Productivity and Finance, and Entertainment seem to be similar on “good” and “bad” day conditions.</em></p>
+</div>
+<div id="plot-3" class="section level1">
+<h1>Plot 3</h1>
+<pre class="r"><code>tidydata %&gt;% ggplot(aes(Consumption_Type, Time, group = Temp)) + 
+    geom_line(aes(color = Temp)) + geom_point(color = &quot;white&quot;) + 
+    labs(title = &quot;Time Spent on Consumption Type by Temperature on non-Rainy and Rainy Days&quot;, 
+        x = &quot;Consumption Type&quot;, y = &quot;Time Spent (mins)&quot;) + theme(axis.text.x = element_text(angle = 90, 
+    hjust = 1), plot.title = element_text(size = 12)) + facet_wrap(~Rain) + 
+    scale_color_gradient(low = &quot;yellow&quot;, high = &quot;red&quot;)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" />
+<em>Based on the graphs, consumption of Netflix varies the most between rainy and non-rainy days. Furthermore, on non-rainy days when the temperatures are upwards of 70º, consumption across all platforms dip. However, on rainy days time spent is mostly high across each consumption type. This could be due to the low temperature on rainy days. Creativity, Travel, Shopping and Food, Productivity and Finance, and Entertainment seem to stay consistent across temperature and rain conditions.</em></p>
+<pre class="r"><code>silwidth &lt;- vector()
+for (i in 2:10) {
+    contype &lt;- newdat %&gt;% select(&quot;Social&quot;, &quot;Entertainment&quot;, &quot;Shopping.and.Food&quot;, 
+        &quot;Travel&quot;, &quot;Creativity&quot;, &quot;Productivity.Finance&quot;, &quot;Netflix&quot;) %&gt;% 
+        scale %&gt;% pam(k = i)
+    silwidth[i] &lt;- contype$silinfo$avg.width
+}
+ggplot() + geom_point(aes(x = 2:10, y = silwidth[2:10]))</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>pam1 &lt;- newdat %&gt;% select(&quot;Social&quot;, &quot;Entertainment&quot;, &quot;Shopping.and.Food&quot;, 
+    &quot;Travel&quot;, &quot;Creativity&quot;, &quot;Productivity.Finance&quot;, &quot;Netflix&quot;) %&gt;% 
+    scale %&gt;% pam(k = 3)
+pam1</code></pre>
+<pre><code>## Medoids:
+##      ID     Social Entertainment Shopping.and.Food     Travel Creativity
+## [1,] 38 -0.4231222   1.298383076        -0.1895756 -0.1414214 -0.7921555
+## [2,] 50 -0.4598515  -1.037807926         0.5721121 -0.1414214 -0.7921555
+## [3,] 36  0.2012769  -0.004492675        -0.7819994 -0.1414214  1.5499600
+##      Productivity.Finance    Netflix
+## [1,]           -0.4913888 -0.5962769
+## [2,]           -0.4913888 -0.5962769
+## [3,]           -0.4913888 -0.1441368
+## Clustering vector:
+##  [1] 1 2 2 3 3 3 3 3 1 1 1 1 3 3 2 3 2 1 2 1 2 2 3 2 2 3 1 1 1 3 1 3 2 3 2 3 3 1
+## [39] 1 2 3 1 2 2 2 2 2 2 1 2
+## Objective function:
+##    build     swap 
+## 2.053163 1.970947 
+## 
+## Available components:
+##  [1] &quot;medoids&quot;    &quot;id.med&quot;     &quot;clustering&quot; &quot;objective&quot;  &quot;isolation&quot; 
+##  [6] &quot;clusinfo&quot;   &quot;silinfo&quot;    &quot;diss&quot;       &quot;call&quot;       &quot;data&quot;</code></pre>
+<pre class="r"><code>plot(pam1, which = 2)</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-11-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>library(GGally)
+newdat %&gt;% mutate(cluster = as.factor(pam1$clustering)) %&gt;% ggpairs(columns = c(&quot;Social&quot;, 
+    &quot;Entertainment&quot;, &quot;Shopping.and.Food&quot;, &quot;Travel&quot;, &quot;Creativity&quot;, 
+    &quot;Productivity.Finance&quot;, &quot;Netflix&quot;), aes(color = cluster, 
+    alpha = 0.5))</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-11-3.png" width="672" style="display: block; margin: auto;" />
+<em>The plot for silwidth shows that k should be equal to 10, however, I chose k = 3 as per Dr. Woodward’s recommendation.</em>
+<em>The ggpairs plot shows that when Social consumption is high, Entertainment consumption is low. However, the other variables are not as easily separated by cluster.</em></p>
+<pre class="r"><code>pamclust1 &lt;- newdat %&gt;% mutate(cluster = as.factor(pam1$clustering))
+pamclust1 %&gt;% ggplot(aes(Social, Entertainment, color = cluster)) + 
+    geom_point()</code></pre>
+<p><img src="../../project/project1_files/figure-html/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>pamclust1 %&gt;% group_by(cluster) %&gt;% summarize_if(is.numeric, 
+    mean, na.rm = T)</code></pre>
+<pre><code>## # A tibble: 3 x 11
+##   cluster Social Entertainment Shopping.and.Fo… Travel Creativity
+##   &lt;fct&gt;    &lt;dbl&gt;         &lt;dbl&gt;            &lt;dbl&gt;  &lt;dbl&gt;      &lt;dbl&gt;
+## 1 1         114.         48.3              7      1.53       3.8 
+## 2 2         163.          2.58            15.7    0          3.16
+## 3 3         175.         23.8              3.62   0         40.2 
+## # … with 5 more variables: Productivity.Finance &lt;dbl&gt;, Netflix &lt;dbl&gt;,
+## #   tot_phone_time &lt;dbl&gt;, totscreen &lt;dbl&gt;, Temp &lt;dbl&gt;</code></pre>
+<pre class="r"><code>newdat %&gt;% slice(pam1$id.med)</code></pre>
+<pre><code>##      Date Social Entertainment Shopping.and.Food Travel Creativity
+## 1 3/16/21    129            52                 7      0          0
+## 2 3/28/21    127             0                16      0          0
+## 3 3/14/21    163            23                 0      0         45
+##   Productivity.Finance Netflix tot_phone_time totscreen Rain Temp
+## 1                    0       0            188       188   N    58
+## 2                    0       0            143       143   N    70
+## 3                    0      33            231       264   N    60</code></pre>
+<p><em>Cluster 1 and Cluster 3 are not easily separable by Entertainment and Social. However, the Cluster 2 is separable from Cluster 1 and Cluster 3. Cluster 1 is characterized by low Social and high Entertainment and is composed of low temperature, around 58 degrees, and non-rainy days. Cluster 3 is characterized by mid-to-high Entertainment and mid-to-high Social and is composed of high temperatures, around 70 degrees, and non-rainy days. Cluster 2 is characterized by low Entertainment and varies on Social with mid-to-low temperatures, around 60 degrees, and non-rainy days. With an average silhouette width of 0.21, it is evident that the observations are not clustering well with a k value of 3 and no substantial structure has been found.</em></p>
+</div>
+
+            
+        <hr>         <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div> 
+            </div>
+          </div>
+
+   <hr>  <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div> 
+        </div>
+      </div>
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="../../js/docs.min.js"></script>
+<script src="../../js/main.js"></script>
+
+<script src="../../js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>
