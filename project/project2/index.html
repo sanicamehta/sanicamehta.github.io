@@ -60,7 +60,7 @@
  
 <div class="blog-title">
           <h4>
-         January 1, 0001 
+         April 29, 2021 
             &nbsp;&nbsp;
             
           </h4>
@@ -203,7 +203,7 @@ Fs &lt;- replicate(5000,{
 hist(Fs, prob=T); abline(v = obs_F, col=&quot;red&quot;,add=T)</code></pre>
 <p><img src="../../project/project2_files/figure-html/unnamed-chunk-1-1.png" width="768" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>mean(Fs&gt;obs_F) </code></pre>
-<pre><code>## [1] 0</code></pre>
+<pre><code>## [1] 6e-04</code></pre>
 <p><em>The null hypothesis of the randomization test is that the ulcerated and non-ulcerated tumor patients mean survival time are equal and the alternative hypothesis is that they are not equal. The p-value is effectively zero which means none of the 5000 F statistics generated under the null hypothesis were bigger than the actual F statistic, reject the null hypothesis and conclude that the ulcerated and non-ulcerated tumor patients differ.</em></p>
 <p>#Linear Regression Model</p>
 <pre class="r"><code>melanoma$age_c=melanoma$age-mean(melanoma$age,na.rm=T)
