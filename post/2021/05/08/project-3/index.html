@@ -73,8 +73,29 @@
 
 
 <p>This semester in Dr. Woodward’s computational biology and bioinformatics class has taught me valuable skills that I will be able to carry into the rest of my career. I am extremely grateful to have had a professor as kind as him! Additionally, my brother is a bioinformatics scientist at Natera and it was fun getting to know what he does. Ironically, my brother’s boss has been wanting him to learn R, meanwhile I learned in this class.</p>
-<p>Here’s a quick demo of python as well as how python and R interact:</p>
-<p><img src="../../../../../post/2021-05-08-project-3_files/11866326_1034007186612163_5455387299129461754_n.jpg" /></p>
+<p>Get to know a little bit about me through a quick demo of python as well as how python and R interact via reticulate:</p>
+<pre class="python"><code>SanicaMehta = {
+&#39;FirstName&#39;: &#39;Sanica&#39;,
+&#39;LastName&#39;: &#39;Mehta&#39;,
+&#39;occupation&#39;: [&#39;Biology student at UT Austin&#39;, &#39;Aspiring M.D.&#39;],
+&#39;hobbies&#39;: &#39;In general, I enjoy activities that have to do with pushing myself and exploring uncharted territory. Whether that be going to a restaurant alone and reading a book or simply navigating a new city!&#39;,
+&#39;current favorite quote&#39;: &#39;human beings are a mosaic of everyone we have ever met, you are the living memory of every person that has ever mattered to you - anonymous&#39;
+}
+print(SanicaMehta)</code></pre>
+<pre><code>## {&#39;FirstName&#39;: &#39;Sanica&#39;, &#39;LastName&#39;: &#39;Mehta&#39;, &#39;occupation&#39;: [&#39;Biology student at UT Austin&#39;, &#39;Aspiring M.D.&#39;], &#39;hobbies&#39;: &#39;In general, I enjoy activities that have to do with pushing myself and exploring uncharted territory. Whether that be going to a restaurant alone and reading a book or simply navigating a new city!&#39;, &#39;current favorite quote&#39;: &#39;human beings are a mosaic of everyone we have ever met, you are the living memory of every person that has ever mattered to you - anonymous&#39;}</code></pre>
+<pre class="python"><code>print(SanicaMehta.keys())</code></pre>
+<pre><code>## dict_keys([&#39;FirstName&#39;, &#39;LastName&#39;, &#39;occupation&#39;, &#39;hobbies&#39;, &#39;current favorite quote&#39;])</code></pre>
+<pre class="python"><code>print(SanicaMehta.values())</code></pre>
+<pre><code>## dict_values([&#39;Sanica&#39;, &#39;Mehta&#39;, [&#39;Biology student at UT Austin&#39;, &#39;Aspiring M.D.&#39;], &#39;In general, I enjoy activities that have to do with pushing myself and exploring uncharted territory. Whether that be going to a restaurant alone and reading a book or simply navigating a new city!&#39;, &#39;human beings are a mosaic of everyone we have ever met, you are the living memory of every person that has ever mattered to you - anonymous&#39;])</code></pre>
+<pre class="r"><code>library(reticulate)
+Sanica&lt;-&quot;an R wizard (ish),&quot;</code></pre>
+<pre class="python"><code>Sanica=&quot;but a python noob&quot;
+print(r.Sanica, Sanica)</code></pre>
+<pre><code>## an R wizard (ish), but a python noob</code></pre>
+<pre class="r"><code>cat(c(Sanica,py$Sanica))</code></pre>
+<pre><code>## an R wizard (ish), but a python noob</code></pre>
+<p>Here’s a picture of me doing one of my hobbies! My high school friends, who are still some of my closest friends, and I challenged ourselves to climb Mission Peak near Fremont, California. Here’s us at the very top taking an obligatory victory photo:
+<img src="../../../../../post/2021-05-08-project-3_files/20954072_1929123490669234_5401747164753277206_n.jpg" /></p>
 <p>Check out my past Projects!</p>
 <p><a href="../../../../../project/project1/">Project 1</a></p>
 <p><a href="../../../../../project/project2/">Project 2</a></p>

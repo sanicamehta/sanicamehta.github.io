@@ -10,13 +10,38 @@ description: ''
 This semester in Dr. Woodward's computational biology and bioinformatics class has taught me valuable skills that I will be able to carry into the rest of my career. I am extremely grateful to have had a professor as kind as him! Additionally, my brother is a bioinformatics scientist at Natera and it was fun getting to know what he does. Ironically, my brother's boss has been wanting him to learn R, meanwhile I learned in this class.
 
 
-Here's a quick demo of python as well as how python and R interact:
+Get to know a little bit about me through a quick demo of python as well as how python and R interact via reticulate:
 
 ```{python}
-
+SanicaMehta = {
+'FirstName': 'Sanica',
+'LastName': 'Mehta',
+'occupation': ['Biology student at UT Austin', 'Aspiring M.D.'],
+'hobbies': 'In general, I enjoy activities that have to do with pushing myself and exploring uncharted territory. Whether that be going to a restaurant alone and reading a book or simply navigating a new city!',
+'current favorite quote': 'human beings are a mosaic of everyone we have ever met, you are the living memory of every person that has ever mattered to you - anonymous'
+}
+print(SanicaMehta)
+print(SanicaMehta.keys())
+print(SanicaMehta.values())
 ```
 
-![](/post/2021-05-08-project-3_files/11866326_1034007186612163_5455387299129461754_n.jpg)
+```{R}
+library(reticulate)
+Sanica<-"an R wizard (ish),"
+```
+
+```{python}
+Sanica="but a python noob"
+print(r.Sanica, Sanica)
+```
+
+```{R}
+cat(c(Sanica,py$Sanica))
+```
+
+
+Here's a picture of me doing one of my hobbies! My high school friends, who are still some of my closest friends, and I challenged ourselves to climb Mission Peak near Fremont, California. Here's us at the very top taking an obligatory victory photo:
+![](/post/2021-05-08-project-3_files/20954072_1929123490669234_5401747164753277206_n.jpg)
 
 Check out my past Projects! 
 
