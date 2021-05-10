@@ -1,5 +1,5 @@
 ---
-title: Project 3
+title: Computational Biology and Bioinformatics
 author: Sanica Mehta
 date: '2021-05-08'
 slug: project-3
@@ -7,11 +7,19 @@ categories: []
 tags: []
 description: ''
 ---
+This semester in Dr. Woodward's computational biology and bioinformatics class has taught me valuable skills that I will be able to carry into the rest of my career. I am extremely grateful to have had a professor as kind as him! Additionally, my brother is a bioinformatics scientist at Natera and it was fun getting to know what he does. Ironically, my brother's boss has been wanting him to learn R, meanwhile I learned in this class.
 
-[Link to project 1](/project/project1/)
 
-```{R}
+Here's a quick demo of python as well as how python and R interact:
+
+```{python}
 
 ```
+
 ![](/post/2021-05-08-project-3_files/11866326_1034007186612163_5455387299129461754_n.jpg)
 
+Check out my past Projects! 
+
+[Project 1](/project/project1/)
+
+[Project 2](/project/project2/)
